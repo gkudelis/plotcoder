@@ -12,7 +12,11 @@ if (len(sys.argv) < 2):
 
 dirname = sys.argv[1]
 try:
-    os.mkdir(dirname)
+    cwd = os.getcwd()
+    wdir = os.path.join(cwd, dirname)
+    os.mkdir(wdir)
+    os.chdir(wdir)
+
 except OSError:
     print('Directory already exists.')
     sys.exit()
@@ -39,14 +43,25 @@ while True:
         })
 
     # Init plotting
+    plt.clf()
+    plt.axis((-100,100,-100,100))
     
     # Plot points
     for point in pos_data:
         plt.plot(point['x'], point['y'], 'b.')
 
     # Save to image file
-    fname = dirname + '/plot_' + str('%03u' % slide_number) + '.png'
+    fname = 'plot_' + str('%03u' % slide_number) + '.png'
     plt.savefig(fname, dpi=100)
     print('Writing file ' + fname)
 
-    plt.clf()
+# Make avi and get rid of png's
+out_name = dirname + '.avi'
+subprocess.check_call(['mencoder', 'mf://*.png', '-mf', 'fps=25',
+    '-o', out_name, '-ovc', 'lavc', '-lavcopts', 'vcodec=mpeg4'])
+
+for fname in os.listdir(wdir):
+    if fname == out_name:
+        continue
+    print('Removing: ' + fname)
+    os.remove(os.path.join(wdir, fname))
