@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import subprocess, os, sys
+import math as M
 
 
 if (len(sys.argv) < 2):
@@ -21,15 +22,20 @@ except OSError:
     print('Directory already exists.')
     sys.exit()
 
-slide_number = 0;
+data = sys.stdin.readline().rstrip(' \n')
+slide_total = int(data)
+# The +1 helps when we have exactly 10^n slides
+num_digits = M.ceil(M.log10(slide_total+1))
+filename_strf = '%0'+str(num_digits)+'u'
+print('Looking forward to '+str(slide_total)+' slides.')
 
 # Read data from stdin and plot at the same time
-while True:
-    slide_number += 1
-
+slide_number = 1
+while slide_number <= slide_total:
     line = sys.stdin.readline().rstrip(' \n')
     if len(line) == 0:
-        break
+        print('Unexpected empty line in input.')
+        sys.exit()
 
     data = line.split(' ')
     time = float(data[0])
@@ -51,9 +57,11 @@ while True:
         plt.plot(point['x'], point['y'], 'b.')
 
     # Save to image file
-    fname = 'plot_' + str('%03u' % slide_number) + '.png'
+    fname = 'plot_' + str(filename_strf % slide_number) + '.png'
     plt.savefig(fname, dpi=100)
     print('Writing file ' + fname)
+
+    slide_number += 1
 
 # Make avi and get rid of png's
 out_name = dirname + '.avi'
